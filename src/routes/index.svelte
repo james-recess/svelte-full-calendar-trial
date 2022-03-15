@@ -67,9 +67,8 @@
       events: $events,
       eventContent: (arg) => {
         const domNode = document.getElementById(`comp-container-${arg.event.extendedProps.id}`);
-        return {
-          domNodes: [domNode],
-        };
+        return { domNodes: [domNode] };
+        // return { html: '<i>some</i>' };
       },
     });
 
@@ -91,3 +90,9 @@
     {/each}
   </div>
 </div>
+
+<style>
+  .hidden-comp-container {
+    display: none;
+  }
+</style>
