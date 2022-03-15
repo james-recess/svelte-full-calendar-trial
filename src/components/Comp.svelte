@@ -4,6 +4,11 @@
 
 <div class="comp">
   Component {event.extendedProps.a}
+  <p>{event.start}</p>
 </div>
 
-<style></style>
+<style>
+  .comp {
+    overflow: hidden;
+  }
+</style>
