@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import Comp from '../components/Comp.svelte';
   import { writable, get } from 'svelte/store';
+  import { format, addDays } from 'date-fns';
 
   let container;
   let calendar;
@@ -69,11 +70,56 @@
         if (!info.event.extendedProps.class?.id) {
           return;
         }
-        const newItem = document.getElementById(`event-class-${info.event.extendedProps.class.id}`);
-        const [oldItem] = info.el.getElementsByClassName('fc-content');
+        let newItem = document.getElementById(`event-class-${info.event.extendedProps.class.id}`);
+        let [oldItem] = info.el.getElementsByClassName('fc-content');
         if (oldItem && newItem) {
           oldItem.parentNode.replaceChild(newItem.cloneNode(true), oldItem);
         }
+      },
+      columnHeaderFormat: function (date) {
+        console.log(date.date.marker, formatter(date.date.marker));
+        return formatter(addDays(date.date.marker, 1));
+      },
+      datesRender: (info) => {
+        const columnHeaders = info.el.getElementsByClassName('fc-day-header');
+        if (columnHeaders.length) {
+          for (const columnHeader of columnHeaders) {
+            const [weekday, day] = columnHeader.firstChild.textContent.split(' ');
+            columnHeader.removeChild(columnHeader.firstChild);
+
+            const weekdayElement = document.createElement('span');
+            weekdayElement.innerHTML = weekday;
+            weekdayElement.style.cssText = 'font-weight: normal;';
+            columnHeader.appendChild(weekdayElement);
+
+            const breakElement = document.createElement('br');
+            columnHeader.appendChild(breakElement);
+
+            const dayElement = document.createElement('span');
+            dayElement.innerHTML = day;
+            columnHeader.appendChild(dayElement);
+          }
+        }
+
+        const fcbgElements = info.el.getElementsByClassName('fc-bg');
+        els[0].parentNode.parentNode.removeChild(els[0].parentNode);
+
+        // console.log('thElements', thElements);
+        // const trElement = thElements.length ? thElements[0].parentNode : null;
+        // console.log(trElement);
+        // if (trElement) {
+        //   trElement.parentNode.removeChild(trElement);
+        // }
+        // trElement.parentNode.removeChild(trElement);
+
+        // const columns = info.el.getElementsByClassName('fc-day');
+        // if (columns?.length) {
+        //   for (let i = 0; i < columns.length; i++) {
+        //     if (i % 2 === 0) {
+        //       columns[i].style.cssText = 'background-color: red;';
+        //     }
+        //   }
+        // }
       },
       // validRange: {
       //   start: '2022-01-01',
@@ -84,6 +130,10 @@
     calendar.render();
     getCurrentRange();
   });
+
+  function formatter(date) {
+    return format(date, 'EEE d');
+  }
 
   function gotoPrev() {
     calendar.prev();
@@ -130,5 +180,8 @@
 <style>
   .hidden-comp-container {
     display: none;
+  }
+  td.fc-day:nth-child(even) {
+    background-color: red;
   }
 </style>

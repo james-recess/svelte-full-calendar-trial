@@ -15,6 +15,7 @@
     "@fullcalendar/list": "^4.4.2",
     "@fullcalendar/timegrid": "^4.4.2",
     "compression": "^1.7.1",
+    "date-fns": "^2.28.0",
     "polka": "next",
     "sirv": "^1.0.0"
   },
