@@ -102,7 +102,7 @@
         }
 
         const fcbgElements = info.el.getElementsByClassName('fc-bg');
-        els[0].parentNode.parentNode.removeChild(els[0].parentNode);
+        fcbgElements[0].parentNode.parentNode.removeChild(fcbgElements[0].parentNode);
 
         // console.log('thElements', thElements);
         // const trElement = thElements.length ? thElements[0].parentNode : null;
