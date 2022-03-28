@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, afterUpdate } from 'svelte';
   import Comp from '../components/Comp.svelte';
   import { writable, get } from 'svelte/store';
   import { format, addDays } from 'date-fns';
@@ -15,7 +15,7 @@
     });
   }
 
-  const events = [
+  let events = [
     {
       allDay: false,
       timezone: 'local',
@@ -75,6 +75,8 @@
         if (oldItem && newItem) {
           oldItem.parentNode.replaceChild(newItem.cloneNode(true), oldItem);
         }
+        console.log('newItem', newItem);
+        console.log('oldItem', oldItem);
       },
       columnHeaderFormat: function (date) {
         console.log(date.date.marker, formatter(date.date.marker));
@@ -128,7 +130,42 @@
     });
 
     calendar.render();
+    // calendar.rerenderEvents
     getCurrentRange();
+
+    setTimeout(updateEvents, 1000);
+  });
+
+  async function updateEvents() {
+    events = [
+      {
+        allDay: false,
+        timezone: 'local',
+        title: 'Shit',
+        start: new Date().toISOString(),
+        end: new Date(new Date().getTime() + 60 * 60 * 1000).toISOString(),
+        extendedProps: {
+          class: {
+            id: 1,
+            name: 'Class',
+            instructors: [
+              {
+                first_name: 'James',
+                last_name: 'Yu',
+              },
+              {
+                first_name: 'hey',
+                last_name: 'hey',
+              },
+            ],
+          },
+        },
+      },
+    ];
+  }
+
+  afterUpdate(() => {
+    calendar && calendar.refetchEvents();
   });
 
   function formatter(date) {
@@ -170,7 +207,7 @@
 
   <div class="hidden-comp-container">
     {#each events || [] as event, index}
-      <div id={`event-class-${event.extendedProps.id}`}>
+      <div id={`event-class-${event.extendedProps.class.id}`}>
         <Comp {event} />
       </div>
     {/each}
@@ -179,7 +216,7 @@
 
 <style>
   .hidden-comp-container {
-    display: none;
+    /* display: none; */
   }
   td.fc-day:nth-child(even) {
     background-color: red;

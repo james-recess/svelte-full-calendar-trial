@@ -1,10 +1,12 @@
 <script>
   export let event;
+
+  console.log('event', event);
 </script>
 
 <div class="comp">
-  Component {event.extendedProps.a}
-  <p>{event.start}</p>
+  {event.title}
+  hello
 </div>
 
 <style>
