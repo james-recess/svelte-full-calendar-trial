@@ -1,13 +1,7 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
-  import { Calendar } from '@fullcalendar/core';
-  import dayGridPlugin from '@fullcalendar/daygrid';
-  import timeGridPlugin from '@fullcalendar/timegrid';
-  import listPlugin from '@fullcalendar/list';
-  import customViewPlugin from '../plugins/custom-view-file.js';
+  import { onMount } from 'svelte';
   import Comp from '../components/Comp.svelte';
-  import { readable, derived, writable, get } from 'svelte/store';
-  import { fetchEvents as graphFetchEvents } from '../graph/events';
+  import { writable, get } from 'svelte/store';
 
   let container;
   let calendar;
@@ -20,55 +14,71 @@
     });
   }
 
-  $: if ($activeRange) {
-    fetchEvents();
-  }
-
-  const events = writable([]);
-  async function fetchEvents() {
-    const es = await graphFetchEvents($activeRange);
-    events.set(es);
-  }
-
-  let eventUnsubscribe;
-  $: {
-    if (events && calendar) {
-      if (eventUnsubscribe) {
-        eventUnsubscribe();
-      }
-      eventUnsubscribe = events.subscribe((_) => setTimeout(() => calendar.refetchEvents(), 50));
-    }
-  }
-
-  onDestroy(() => eventUnsubscribe && eventUnsubscribe());
+  const events = [
+    {
+      allDay: false,
+      timezone: 'local',
+      title: 'Class',
+      start: new Date().toISOString(),
+      end: new Date(new Date().getTime() + 60 * 60 * 1000).toISOString(),
+      extendedProps: {
+        class: {
+          id: 1,
+          name: 'Class',
+          instructors: [
+            {
+              first_name: 'James',
+              last_name: 'Yu',
+            },
+            {
+              first_name: 'hey',
+              last_name: 'hey',
+            },
+          ],
+        },
+      },
+    },
+  ];
 
   onMount(async () => {
-    calendar = new Calendar(container, {
-      plugins: [dayGridPlugin, timeGridPlugin, listPlugin, customViewPlugin],
-      initialView: 'timeGridWeek',
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,listWeek',
-      },
-      events: async (fetchInfo, successCallback, failureCallback) => {
-        successCallback(events ? get(events) : []);
-      },
-      eventContent: (arg) => {
-        const domNode = document.getElementById(`comp-container-${arg.event.extendedProps.id}`);
+    if (calendar) return;
 
-        if (domNode === null) {
-          return { domNodes: [] };
+    const [core, interactionPlugin, dayGridPlugin, timeGridPlugin, listPlugin] = await Promise.all([
+      import('@fullcalendar/core'),
+      import('@fullcalendar/interaction'),
+      import('@fullcalendar/daygrid'),
+      import('@fullcalendar/timegrid'),
+      import('@fullcalendar/list'),
+    ]);
+
+    calendar = new core.Calendar(container, {
+      plugins: [
+        interactionPlugin.default,
+        dayGridPlugin.default,
+        timeGridPlugin.default,
+        listPlugin.default,
+      ],
+      defaultView: 'timeGridWeek',
+      header: null,
+      events: (fetchInfo, successCallback, failureCallback) => {
+        successCallback(events || []);
+      },
+      eventRender: (info) => {
+        info.el.style.overflow = 'hidden';
+        info.el.style.color = 'black';
+        if (!info.event.extendedProps.class?.id) {
+          return;
         }
-
-        const clone = domNode.cloneNode(true);
-        return { domNodes: [clone] };
-        // return { html: '<i>some</i>' };
+        const newItem = document.getElementById(`event-class-${info.event.extendedProps.class.id}`);
+        const [oldItem] = info.el.getElementsByClassName('fc-content');
+        if (oldItem && newItem) {
+          oldItem.parentNode.replaceChild(newItem.cloneNode(true), oldItem);
+        }
       },
-      validRange: {
-        start: '2022-01-01',
-        end: '2022-05-05',
-      },
+      // validRange: {
+      //   start: '2022-01-01',
+      //   end: '2022-05-05',
+      // },
     });
 
     calendar.render();
@@ -109,8 +119,8 @@
   </div>
 
   <div class="hidden-comp-container">
-    {#each $events || [] as event, index}
-      <div id={`comp-container-${event.extendedProps.id}`}>
+    {#each events || [] as event, index}
+      <div id={`event-class-${event.extendedProps.id}`}>
         <Comp {event} />
       </div>
     {/each}
